@@ -1,11 +1,18 @@
-package Matrix
+package matrix
 
 /*
 check square Matrix
 정방행렬인지 확인
 */
 func (m Matrix) CheckSquare() bool {
-	return len(m) == len(m[0])
+	return m.I() == m.J()
+}
+
+func (m Matrix) I() int {
+	return len(m)
+}
+func (m Matrix) J() int {
+	return len(m[0])
 }
 
 /*

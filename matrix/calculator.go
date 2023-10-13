@@ -1,4 +1,6 @@
-package Matrix
+package matrix
+
+import "fmt"
 
 type Matrix [][]int
 
@@ -11,7 +13,7 @@ func (m Matrix) Add(md Matrix) Matrix {
 		return nil
 	}
 	tmp := Matrix{}
-	tmp.Create(len(m), len(m[0])).Write(m)
+	tmp.Create(len(m), m.J()).Write(m)
 	for i := range tmp {
 		for j := range tmp[i] {
 			tmp[i][j] += md[i][j]
@@ -30,7 +32,7 @@ func (m Matrix) Sub(md Matrix) Matrix {
 	}
 
 	tmp := Matrix{}
-	tmp.Create(len(m), len(m[0])).Write(m)
+	tmp.Create(len(m), m.J()).Write(m)
 	for i := range tmp {
 		for j := range tmp[i] {
 			tmp[i][j] -= md[i][j]
@@ -45,7 +47,7 @@ transpose
 */
 func (m Matrix) Transpose() Matrix {
 	tmp := Matrix{}
-	tmp.Create(len(m[0]), len(m))
+	tmp.Create(m.J(), len(m))
 	for i := range m {
 		for j := range m[i] {
 			tmp[j][i] = m[i][j]
@@ -60,7 +62,7 @@ scalar multiplication
 */
 func (m Matrix) SMul(s int) Matrix {
 	tmp := Matrix{}
-	tmp.Create(len(m), len(m[0])).Write(m)
+	tmp.Create(len(m), m.J()).Write(m)
 	for i := range tmp {
 		for j := range tmp[i] {
 			tmp[i][j] *= s
@@ -74,7 +76,7 @@ Matrix multiplication
 행렬의 곱셈
 */
 func (m Matrix) Mul(md Matrix) Matrix {
-	if len(m[0]) != len(md) {
+	if m.J() != m.I() {
 		return nil
 	}
 	res := Matrix{}
@@ -90,12 +92,98 @@ func (m Matrix) Mul(md Matrix) Matrix {
 }
 
 /*
+matrix division
+행렬대 행렬 나누기
+*/
+func (m Matrix) Div(md Matrix) Matrix {
+	if !m.CheckEqualSize(md) {
+		return nil
+	}
+	d, e := md.Inverse()
+	if e != nil {
+		panic(e)
+	}
+	return m.Mul(d)
+}
+
+/*
+matrix division int
+행렬대 int 나누기
+*/
+func (m Matrix) DivInt(s int) Matrix {
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] /= s
+		}
+	}
+	return m
+}
+
+/*
+delete i and j
+특정 행과 열을 제거
+*/
+func (m Matrix) Cut(i, k int) Matrix {
+	tmp := Matrix{}
+	tmp.Create(m.I()-1, m.J()-1)
+	xx, yy := 0, 0
+	for x := range m {
+		if x == i {
+			continue
+		}
+		for y := range m[x] {
+			if y == k {
+				continue
+			}
+			// fmt.Println(xx, yy, x, y, m[x][y])
+			tmp[xx][yy] = m[x][y]
+			yy++
+		}
+		yy = 0
+		xx++
+	}
+	return tmp
+}
+
+/*
+Matrix determinant
+행렬식
+*/
+func (m Matrix) Det() int {
+	if len(m) != m.J() {
+		return 0
+	}
+	if len(m) == 1 {
+		return m[0][0]
+	}
+
+	var res int
+	for i := range m {
+		res += m[i][0] * m.Cut(i, 0).Det() * square(-1, i+0)
+	}
+	return res
+}
+
+/*
 Matrix inverse
 역행렬
 */
-func (m Matrix) Inverse() Matrix {
+func (m Matrix) Inverse() (Matrix, error) {
 	if !m.CheckSquare() {
-		return nil
+		return nil, fmt.Errorf("not square matrix")
 	}
-	return nil
+	if m.Det() == 0 {
+		return nil, fmt.Errorf("determinant is zero")
+	}
+	tmp := Matrix{}
+	tmp.Create(m.I(), m.J())
+
+	return tmp.Transpose().DivInt(m.Det()), nil
+}
+
+func square(d, i int) int {
+	if i == 0 {
+		return 1
+	}
+	return d * square(d, i-1)
 }
