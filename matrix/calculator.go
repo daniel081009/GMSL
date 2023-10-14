@@ -165,6 +165,21 @@ func (m Matrix) Det() int {
 }
 
 /*
+adjugate matrix
+여인수
+*/
+func (m Matrix) Adj() Matrix {
+	tmp := Matrix{}
+	tmp.Create(len(m), len(m))
+	for i := range m {
+		for j := range m[i] {
+			tmp[i][j] = m.Cut(i, j).Det() * square(-1, i+j)
+		}
+	}
+	return tmp
+}
+
+/*
 Matrix inverse
 역행렬
 */
@@ -178,7 +193,7 @@ func (m Matrix) Inverse() (Matrix, error) {
 	tmp := Matrix{}
 	tmp.Create(m.I(), m.J())
 
-	return tmp.Transpose().DivInt(m.Det()), nil
+	return m.Adj().DivInt(m.Det()), nil
 }
 
 func square(d, i int) int {

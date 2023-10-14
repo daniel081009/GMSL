@@ -39,5 +39,5 @@ func main() {
 	if e != nil {
 		panic(e)
 	}
-	d.Print()
+	d.Transpose().Print()
 }
