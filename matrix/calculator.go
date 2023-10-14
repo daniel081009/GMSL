@@ -1,7 +1,5 @@
 package matrix
 
-import "fmt"
-
 type Matrix [][]int
 
 /*
@@ -93,7 +91,7 @@ func (m Matrix) Mul(md Matrix) Matrix {
 
 /*
 matrix division
-행렬대 행렬 나누기
+행렬을 행렬로 나누기
 */
 func (m Matrix) Div(md Matrix) Matrix {
 	if !m.CheckEqualSize(md) {
@@ -108,7 +106,7 @@ func (m Matrix) Div(md Matrix) Matrix {
 
 /*
 matrix division int
-행렬대 int 나누기
+행렬을 int로 나누기
 */
 func (m Matrix) DivInt(s int) Matrix {
 	for i := range m {
@@ -120,85 +118,41 @@ func (m Matrix) DivInt(s int) Matrix {
 }
 
 /*
-delete i and j
-특정 행과 열을 제거
+matrix lu decomposition
+행렬을 lu 분해
 */
-func (m Matrix) Cut(i, k int) Matrix {
-	tmp := Matrix{}
-	tmp.Create(m.I()-1, m.J()-1)
-	xx, yy := 0, 0
-	for x := range m {
-		if x == i {
-			continue
-		}
-		for y := range m[x] {
-			if y == k {
-				continue
-			}
-			// fmt.Println(xx, yy, x, y, m[x][y])
-			tmp[xx][yy] = m[x][y]
-			yy++
-		}
-		yy = 0
-		xx++
-	}
-	return tmp
-}
-
-/*
-Matrix determinant
-행렬식
-*/
-func (m Matrix) Det() int {
-	if len(m) != m.J() {
-		return 0
-	}
-	if len(m) == 1 {
-		return m[0][0]
-	}
-
-	var res int
-	for i := range m {
-		res += m[i][0] * m.Cut(i, 0).Det() * square(-1, i+0)
-	}
-	return res
-}
-
-/*
-adjugate matrix
-여인수
-*/
-func (m Matrix) Adj() Matrix {
-	tmp := Matrix{}
-	tmp.Create(len(m), len(m))
-	for i := range m {
-		for j := range m[i] {
-			tmp[i][j] = m.Cut(i, j).Det() * square(-1, i+j)
-		}
-	}
-	return tmp
-}
-
-/*
-Matrix inverse
-역행렬
-*/
-func (m Matrix) Inverse() (Matrix, error) {
+func (m Matrix) LU() (Matrix, Matrix) {
 	if !m.CheckSquare() {
-		return nil, fmt.Errorf("not square matrix")
+		return nil, nil
 	}
-	if m.Det() == 0 {
-		return nil, fmt.Errorf("determinant is zero")
-	}
-	tmp := Matrix{}
-	tmp.Create(m.I(), m.J())
+	l := Matrix{}
+	l.Create(len(m), len(m))
+	u := Matrix{}
+	u.Create(len(m), len(m))
 
-	return m.Adj().DivInt(m.Det()), nil
-}
+	n := len(m)
+	for i := 0; i < n; i++ {
+		for j := 0; j <= i; j++ {
+			if j == i {
+				l[i][j] = 1
+			} else {
+				sum := 0
+				for k := 0; k < j; k++ {
+					sum += l[i][k] * u[k][j]
+				}
+				l[i][j] = (m[i][j] - sum) / u[j][j]
+			}
+		}
 
-func square(d, i int) int {
-	if i == 0 {
-		return 1
+		// Compute the elements of the U matrix
+		for j := i; j < n; j++ {
+			sum := 0
+			for k := 0; k < i; k++ {
+				sum += l[i][k] * u[k][j]
+			}
+			u[i][j] = m[i][j] - sum
+		}
 	}
-	return d * square(d, i-1)
+
+	return l, u
 }

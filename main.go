@@ -39,5 +39,12 @@ func main() {
 	if e != nil {
 		panic(e)
 	}
-	d.Transpose().Print()
+	d.Print()
+
+	fmt.Println("\n m3 lu decomposition")
+	l, u := m3.LU()
+	l.Print()
+	fmt.Println()
+	u.Print()
+	fmt.Println(l.Mul(u).CheckEqual(m3))
 }

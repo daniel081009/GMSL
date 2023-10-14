@@ -37,3 +37,28 @@ func (m Matrix) Print() {
 		fmt.Println()
 	}
 }
+
+/*
+delete i and j
+특정 행과 열을 제거
+*/
+func (m Matrix) Cut(i, k int) Matrix {
+	tmp := Matrix{}
+	tmp.Create(m.I()-1, m.J()-1)
+	xx, yy := 0, 0
+	for x := range m {
+		if x == i {
+			continue
+		}
+		for y := range m[x] {
+			if y == k {
+				continue
+			}
+			tmp[xx][yy] = m[x][y]
+			yy++
+		}
+		yy = 0
+		xx++
+	}
+	return tmp
+}
